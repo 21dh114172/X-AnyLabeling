@@ -94,7 +94,8 @@ class LabelingWidget(LabelDialog):
             )
             if output_file is None:
                 output_file = output
-
+        
+        self.my_prev_shapes = []
         self.filename = None
         self.image_path = None
         self.image_data = None
@@ -491,6 +492,26 @@ class LabelingWidget(LabelDialog):
             self.tr("Start drawing rectangles"),
             enabled=False,
         )
+        duplicate_prev_annotation_mode = action(
+            self.tr("Duplicate Previous Annotation"),
+            self.load_prev_annotation,
+            shortcuts["duplicate_prev_annotation"],
+            "edit",
+            self.tr("Click to duplicate previous annotation"),
+            enabled=False,
+        )
+        # duplicate_prev_annotation_mode = action("Your button")
+        # duplicate_prev_annotation_mode.setStatusTip("This is your button")
+        # duplicate_prev_annotation_mode.triggered.connect(self.load_prev_annotation)
+        # duplicate_prev_annotation_mode = action(
+        #     self.tr("Duplicate Previous Annotation"),
+        #     lambda: self.load_prev_annotation,
+        #     shortcuts["duplicate_prev_annotation"],
+        #     "copy",
+        #     self.tr("Click to duplicate previous annotation"),
+        #     enabled=True,
+        #     auto_trigger=True
+        # )
         create_rotation_mode = action(
             self.tr("Create Rotation"),
             lambda: self.toggle_draw_mode(False, create_mode="rotation"),
@@ -1250,6 +1271,7 @@ class LabelingWidget(LabelDialog):
             edit_mode=edit_mode,
             create_rectangle_mode=create_rectangle_mode,
             create_rotation_mode=create_rotation_mode,
+            duplicate_prev_annotation_mode=duplicate_prev_annotation_mode,
             create_circle_mode=create_circle_mode,
             create_line_mode=create_line_mode,
             create_point_mode=create_point_mode,
@@ -1340,6 +1362,7 @@ class LabelingWidget(LabelDialog):
             ),
             # menu shown at right click
             menu=(
+                duplicate_prev_annotation_mode,
                 create_mode,
                 create_rectangle_mode,
                 create_rotation_mode,
@@ -1362,6 +1385,7 @@ class LabelingWidget(LabelDialog):
                 close,
                 create_mode,
                 create_rectangle_mode,
+                duplicate_prev_annotation_mode,
                 create_rotation_mode,
                 create_circle_mode,
                 create_line_mode,
@@ -1579,6 +1603,7 @@ class LabelingWidget(LabelDialog):
             fit_width,
             toggle_auto_labeling_widget,
             run_all_images,
+            self.actions.duplicate_prev_annotation_mode
         )
 
         layout = QHBoxLayout()
@@ -2721,6 +2746,17 @@ class LabelingWidget(LabelDialog):
         self.actions.edit_mode.setEnabled(not edit)
         self.label_instruction.setText(self.get_labeling_instruction())
 
+    def load_prev_annotation(self):
+        print("load prev annotation")
+        if len(self.my_prev_shapes) <= 0:
+            return 
+        self.load_shapes(
+                self.my_prev_shapes, replace=False, update_last_label=False
+        )
+        self.set_dirty()
+        self.actions.delete_file.setEnabled(True)
+        self.actions.delete.setEnabled(True)
+
     def set_edit_mode(self):
         # Disable auto labeling
         self.clear_auto_labeling_marks()
@@ -3647,7 +3683,9 @@ class LabelingWidget(LabelDialog):
         self.image = image
         self.filename = filename
         if self._config["keep_prev"]:
-            prev_shapes = self.canvas.shapes
+            prev_shapes = self.canvas.shapes if len(self.canvas.shapes) > 0 else []
+            print("save prev_shapes", len(prev_shapes))
+        self.my_prev_shapes = self.canvas.shapes if len(self.canvas.shapes) > 0 else self.my_prev_shapes
         self.canvas.load_pixmap(QtGui.QPixmap.fromImage(image))
         flags = {k: False for k in self.image_flags or []}
         if self.label_file:
@@ -3667,13 +3705,15 @@ class LabelingWidget(LabelDialog):
             if self.label_file.flags is not None:
                 flags.update(self.label_file.flags)
         self.load_flags(flags)
-        if self._config["keep_prev"] and self.no_shape():
+        if self._config["keep_prev"] and self.no_shape() and len(prev_shapes) > 0:
+            print("load prev_shapes", prev_shapes)
             self.load_shapes(
                 prev_shapes, replace=False, update_last_label=False
             )
             self.set_dirty()
         else:
             self.set_clean()
+        self.actions.duplicate_prev_annotation_mode.setEnabled(True)
         self.canvas.setEnabled(True)
         # set zoom values
         is_initial_load = not self.zoom_values
@@ -3729,6 +3769,7 @@ class LabelingWidget(LabelDialog):
             msg = str(self.tr("Loaded %s")) % basename
         self.status(msg)
         return True
+
 
     # QT Overload
     def resizeEvent(self, _):
