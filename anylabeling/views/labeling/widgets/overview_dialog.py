@@ -45,6 +45,7 @@ class OverviewDialog(QtWidgets.QDialog):
         # Table widget
         self.table = QTableWidget(self)
 
+        self.table.setSortingEnabled(True)
         self.populate_table()
 
         layout.addWidget(self.table)
@@ -248,6 +249,7 @@ class OverviewDialog(QtWidgets.QDialog):
         return headers, table_data
 
     def populate_table(self, start_index: int = -1, end_index: int = -1):
+        self.table.setSortingEnabled(False)
         if self.showing_label_infos:
             total_infos = self.get_total_infos(start_index, end_index)
             rows = len(total_infos) - 1
@@ -277,6 +279,8 @@ class OverviewDialog(QtWidgets.QDialog):
             self.table.horizontalHeader().setSectionResizeMode(
                 QtWidgets.QHeaderView.Stretch
             )
+        self.table.setSortingEnabled(True)
+        
 
     def update_range(self):
         from_value = (
