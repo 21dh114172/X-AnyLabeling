@@ -2751,8 +2751,14 @@ class LabelingWidget(LabelDialog):
         print("load prev annotation")
         if len(self.my_prev_shapes) <= 0:
             return 
+        current_shapes = set((x.__hash__()) for x in self.canvas.shapes)
+        difference = [ x for x in self.my_prev_shapes if (x.__hash__()) not in current_shapes ]
+        
+        if len(difference) <= 0:
+            return
+        
         self.load_shapes(
-                self.my_prev_shapes, replace=False, update_last_label=False
+                difference, replace=True, update_last_label=False
         )
         self.set_dirty()
         self.actions.delete_file.setEnabled(True)
