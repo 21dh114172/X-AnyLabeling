@@ -1,4 +1,9 @@
 import os
+import datetime
+# Force import onnx before onnxruntime to display error message
+import onnx
+import onnxruntime
+import onnx.onnx_cpp2py_export
 
 # Temporary fix for: bus error
 # Source: https://stackoverflow.com/questions/73072612/
@@ -223,7 +228,23 @@ def main():
     win.raise_()
     sys.exit(app.exec())
 
+def exception_hook(exc_type, exc_value, exc_traceback):
+   logging.error(
+       "Uncaught exception",
+       exc_info=(exc_type, exc_value, exc_traceback)
+   )
+   sys.exit()
+
+def set_up_logger():
+    date_time_obj = datetime.datetime.now()
+    timestamp_str = date_time_obj.strftime("%d-%b-%Y_%H_%M_%S")
+    if not os.path.exists('./Log'):
+        os.makedirs('./Log')
+    filename = './Log/crash-{}.log'.format(timestamp_str)
+    logging.basicConfig(filename=filename)
+    sys.excepthook = exception_hook
 
 # this main block is required to generate executable by pyinstaller
 if __name__ == "__main__":
+    set_up_logger()
     main()

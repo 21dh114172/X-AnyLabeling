@@ -16,9 +16,11 @@ a = Analysis(
         ('anylabeling/services/auto_labeling/configs/bert/*', 'anylabeling/services/auto_labeling/configs/bert'),
         ('anylabeling/services/auto_labeling/configs/clip/*', 'anylabeling/services/auto_labeling/configs/clip'),
         ('anylabeling/services/auto_labeling/configs/ppocr/*', 'anylabeling/services/auto_labeling/configs/ppocr'),
-        ('anylabeling/services/auto_labeling/configs/ram/*', 'anylabeling/services/auto_labeling/configs/ram')
+        ('anylabeling/services/auto_labeling/configs/ram/*', 'anylabeling/services/auto_labeling/configs/ram'),
+        ('venv/Lib/site-packages/onnxruntime/capi/onnxruntime.dll', 'onnxruntime/capi'),
+        ('venv/Lib/site-packages/onnxruntime/capi/onnxruntime_providers_shared.dll', 'onnxruntime/capi')
     ],
-    hiddenimports=[],
+    hiddenimports=["onnx", "onnx.onnx_cpp2py_export"],
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
