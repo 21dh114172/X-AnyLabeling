@@ -2761,6 +2761,9 @@ class LabelingWidget(LabelDialog):
                 difference, replace=True, update_last_label=False
         )
         self.set_dirty()
+        self.toggle_actions(True)
+        self.canvas.setFocus()
+        self.paint_canvas()
         self.actions.delete_file.setEnabled(True)
         self.actions.delete.setEnabled(True)
 
